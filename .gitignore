@@ -1,0 +1,11 @@
+#Ignore Everything
+*
+
+#Don't ignore directories
+!*/
+
+#Don't ignore .gitignore and needed files
+!.gitignore
+!*.tex
+!*.pdf
+
