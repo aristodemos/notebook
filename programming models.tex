@@ -60,13 +60,38 @@ Created and developed in \textit{Google Inc}, MapReduce was inspired by the {\tt
 MapReduce provides automatic parallelization and distribution, fault-tolerance, I/O scheduling, status and monitoring. The computation takes a set of input key/value pairs and produces a set of output key/value pairs. The computation is expressed as two seperate functions, {\tt Map} and {\tt Reduce}; hence the name. The {\tt Map} takes the input and produces an intermediate output of pairs. This in turn is \textit{shuffled}; the MapReduce library groups together all intermediate values associated with the same intermediate key and passes them to the {\tt Reduce} function. Next the {\tt Reduce} function, accepts the intermediate key with its set of values and merges them to produce a smaller set of values.
 Fault-tolerance is handled via re-execution. Refinements on completion time using redundant execusions near the end of a phase. Master scheduling policy which optimizes locality (same machine/same rack) so thousand machines read input at local disk speeds (bypassing network latency).
 
+_______
+When performing the reduce part you have to repartition and redistribute your data.
+Limited programming model: Map, Reduce, Sort.
+
 \section{DryadLINQ}
 Dryad is a general purpose distributed computing engine for coarse-grain data-parallel applications, on clusters of Windows-based machines. DryadLINQ allows developers to express Dryad applications in managed code by using the LINQ (Language-Integrated Query) programming model and API.
 A DryadLINQ program is a sequential program composed of LINQ expressions performing transformations on datasets. The DryadLINQ system automatically and transparently translates the data-parallel portions of the program into a distributed execution plan which is passed to the Dryad execution platform. DruadLINQ is designed to provide flexible and efficient distributed computation in any LINQ-enabled language inluding C\#, VB and F\#.
 The Dryad system does not raise restrictions in an application's communication flow, as MapReduce and parallel databases do. Instead, it allows the developer to fine control the communication graph as well as the subroutings that live at its vertices. The developer can specify an arbitrary DAG (Directed Acyclic Graph) to describe the application's communication patterns and express the data transport mechanisms between computations.
+--------------------------------
+Dryad:
+framework for distributed computing/parallel programming.
+Automatic fault tolerance, load balancing, bring data to computations.
+
+The idea behind Dryad:
+Many porgrams can be represented as a distributed execution graph.
+Dryad acts as a middleware abstraction that runs this execution graph.
+Is independent of the programming model above. It's implementation is more general than that of MapReduce.
+
+Runtime figures out how to virtualize the job -> creates a static job graph
+and then assigns the job, moves the data to the underlying computation.
+Dryad binds the virtual graph to runtime.
+
+Fault - tolerance
+JobManager monitors the health of each individual job.
+\subsection{Runtime}
+Every Job is represented as a Direct Acyclic Graph. The edges of this graph (channels) denote data movement and vertices denote programs processing the data. Channels can be tcp pipes, disk files or shared memory.
+\subsection{Model}
+
 
 \section{Piccolo}
 Unlike previous data-flow models, Piccolo allows computations running on different machines to share distributed, mutable state via a key-value table  interface. It is described as a data-centric model, differentiating from other models using message passing primitives. The communication-centric model provided by message passing is a very low-level abstraction which makes data processing a burden - it mainly focuses on data location and data transfer. Piccolo exposes a global table interface which is available to all parts of the computation simultaneously, allowing users to specify programs in an intuitive manner similar to that if writing programs for a single machine. Synchronization is achieved by allowing users to defer synchronization logic to the system. Instead of explicitly locking tables in order to perform updates, users can attach accumulation functions to a table; these are used automatically by the framework to correctly combine concurrent updates to a table entry.
+
 
 \section{RDDs - Spark}
 People soon started to demand more and more from the underlying model in terms of usability, complexity, and execution time. Things like multi-pass applications (machine learning and graph algorithms), interactive ad-hoc queries, and more real-time stream processing. 
