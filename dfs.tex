@@ -106,6 +106,19 @@ Relaxed consistency. Guarantees:
 This relaxed consistency affects applications but it can be accomodated through simple techniques. \textit{Appending is far more efficient and resilient to application failures than random writes.}
 
 
+\section{Hadoop Distributed File System - HDFS}
+A distributed file system designed to run on commodity hardware as well. It has many similarities with existing distributed file systems, however it differs significantly.
+\subsection{Design Assumptions}
+(After GFS).
+1) Hardware failure is the norm, not the exception.
+2) Large files, in the size oh GBs or TBs.
+3) Simple Coherency Model (appending to files is not supported)
+4) Applications running on HDFS need streaming access to their data sets. (High throughput than low latency - like GFS)
+
+5) Moving computation is cheaper than moving data
+6) Portability and heterogeneity.
+
+
 
 {\footnotesize \bibliographystyle{acm}
 }
