@@ -49,13 +49,19 @@ CUT
 
 \subsection*{Key Point}
 Distributed File Systems - NFS, GFS, HDFS
+To exploit cluster computing, files have to look and behave differently from the conventional filesystems found on single computers. This new file system is often called \textit{Distributed File System}. In such filesystems it is expected that files are enormous; often reaching several GB in size or even TB. Additionally, files are rarely updated/overwritten; they are usually read as data for calculations and possibly additional data is appended to them. There are several distributed file systems sharing these characteristics. Most important among these are the Google File System, Hadoop Distributed File System and CloudStore.
 
-\section{Network File System -NFS}
+\section{Network File System - NFS}
 Developed by Sun Microsystems, used in all modern Linux systems to join the file systems on separate computers into a logical whole.
 The basic idea behinf NFS is to allow a group of clients and servers to share a common file system.
-Each NFS server exports one or more of its directories for access by remote clients.Clients acess exported directories by mounting them. When a client mounts a remote directory, it becomes part of its directory hierarchy. The mount point is entirely local to the clients; the server does not know where it is mounted on any of its clients.
-To support heterogeneity, NFS defines an interface between clients and servers with two protocols. The first handles mounting. The second is for directory and file access. Clients send messages to servers to manipulate directories and read/write files; but they cannot \textit{open} or \textit{close} files. The advantage of this scheme is that the server does not have to remember anything about open connections in between calls to it. A server that does not maintain state information about open files is called \textit{stateless}. 
-In contrast to NFSv3, described above, versio 4 is a statefull file system.
+Each NFS server exports one or more of its directories for access by remote clients. Clients access exported directories by mounting them. When a client mounts a remote directory, it becomes part of its directory hierarchy. The mount point is entirely local to the clients; the server does not know where it is mounted on any of its clients.
+To support heterogeneity, NFS defines an interface between clients and servers with two protocols. The first handles mounting. The second is for directory and file access. Clients send messages to servers to manipulate directories and read/write files; but they cannot \textit{open} or \textit{close} files. The advantage of this scheme is that the server does not have to remember anything about open connections in between calls to it. The server in NFS does not maintain state information about open files; therefore the NFS protocol is described as a \textit{stateless} protocol. 
+In contrast to NFSv3, described above, version 4 is a statefull file system.
+
+\section{Andrew File System - AFS}
+Developed as a part of the Andrew Project at Carnegie-Melon University in the 1980's. AFS was designed to allow users with workstations to share data easily. It's main design goal was scalability and security. 
+AFS-2 is a stateful system. By the use of callbacks, the server informs any client when a client-side cached file has been modified. 
+The protocol design of AFS minimizes server interactions (through whole file caching instead of block sharing in NFS, and caching), allowing each server to support many clients. By comprison to NFS, the AFS can peroform better when re-reading a large file. In the contrary, NFS performs better when writing/overwriting a large file.
 
 \section{Google File System - GFS}
 The Google File System, was specifically designed and implemented by {\tt Google, Inc} to meet its needs, driven by their application workloads and technological environment.
@@ -107,17 +113,24 @@ This relaxed consistency affects applications but it can be accomodated through 
 
 
 \section{Hadoop Distributed File System - HDFS}
-A distributed file system designed to run on commodity hardware as well. It has many similarities with existing distributed file systems, however it differs significantly.
-\subsection{Design Assumptions}
+A distributed file system designed to run on commodity hardware as well. It has many similarities with existing distributed file systems, however it has significant differences.
+\subsection{Design Assumptions and Goals} 
 (After GFS).
 1) Hardware failure is the norm, not the exception.
 2) Large files, in the size oh GBs or TBs.
 3) Simple Coherency Model (appending to files is not supported)
 4) Applications running on HDFS need streaming access to their data sets. (High throughput than low latency - like GFS)
-
 5) Moving computation is cheaper than moving data
 6) Portability and heterogeneity.
+\subsection{Architecture}
+HDFS has a master/slave architecure. An HDFS cluster consists of a single {\tt NameNode} (master) that manages the file system namespace and regulates access to files by clients. {\tt DataNodes} (slaves) manage storage attached to the nodes they run on. There are a lot of design similarities in the architecture of GFS and HDFS; Files are split in blocks (chunks in GFS), data is replicated in more than one DataNode, and client/user data never flows through the NameNode.
 
+\subsection {Consistency in Hadoop}
+
+
+\section {Summary}
+Hadoop (+): supports different machines - heterogeneity
+GFS(+): supports appends to end of files
 
 
 {\footnotesize \bibliographystyle{acm}

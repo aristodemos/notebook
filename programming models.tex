@@ -60,15 +60,16 @@ Created and developed in \textit{Google Inc}, MapReduce was inspired by the {\tt
 MapReduce provides automatic parallelization and distribution, fault-tolerance, I/O scheduling, status and monitoring. The computation takes a set of input key/value pairs and produces a set of output key/value pairs. The computation is expressed as two seperate functions, {\tt Map} and {\tt Reduce}; hence the name. The {\tt Map} takes the input and produces an intermediate output of pairs. This in turn is \textit{shuffled}; the MapReduce library groups together all intermediate values associated with the same intermediate key and passes them to the {\tt Reduce} function. Next the {\tt Reduce} function, accepts the intermediate key with its set of values and merges them to produce a smaller set of values.
 Fault-tolerance is handled via re-execution. Refinements on completion time using redundant execusions near the end of a phase. Master scheduling policy which optimizes locality (same machine/same rack) so thousand machines read input at local disk speeds (bypassing network latency).
 
-_______
 When performing the reduce part you have to repartition and redistribute your data.
 Limited programming model: Map, Reduce, Sort.
 
 \section{DryadLINQ}
-Dryad is a general purpose distributed computing engine for coarse-grain data-parallel applications, on clusters of Windows-based machines. DryadLINQ allows developers to express Dryad applications in managed code by using the LINQ (Language-Integrated Query) programming model and API.
+Dryad is a general purpose distributed computing engine for coarse-grain data-parallel applications, on clusters of Windows-based machines. 
+Dryad requires user created parallel tasks. That responsibility was automated through the introduction of DryadLINQ. 
+DryadLINQ allows developers to express Dryad applications in managed code by using the LINQ (Language-Integrated Query) programming model and API.
 A DryadLINQ program is a sequential program composed of LINQ expressions performing transformations on datasets. The DryadLINQ system automatically and transparently translates the data-parallel portions of the program into a distributed execution plan which is passed to the Dryad execution platform. DruadLINQ is designed to provide flexible and efficient distributed computation in any LINQ-enabled language inluding C\#, VB and F\#.
 The Dryad system does not raise restrictions in an application's communication flow, as MapReduce and parallel databases do. Instead, it allows the developer to fine control the communication graph as well as the subroutings that live at its vertices. The developer can specify an arbitrary DAG (Directed Acyclic Graph) to describe the application's communication patterns and express the data transport mechanisms between computations.
---------------------------------
+
 Dryad:
 framework for distributed computing/parallel programming.
 Automatic fault tolerance, load balancing, bring data to computations.
@@ -90,19 +91,54 @@ Every Job is represented as a Direct Acyclic Graph. The edges of this graph (cha
 
 
 \section{Piccolo}
-Unlike previous data-flow models, Piccolo allows computations running on different machines to share distributed, mutable state via a key-value table  interface. It is described as a data-centric model, differentiating from other models using message passing primitives. The communication-centric model provided by message passing is a very low-level abstraction which makes data processing a burden - it mainly focuses on data location and data transfer. Piccolo exposes a global table interface which is available to all parts of the computation simultaneously, allowing users to specify programs in an intuitive manner similar to that if writing programs for a single machine. Synchronization is achieved by allowing users to defer synchronization logic to the system. Instead of explicitly locking tables in order to perform updates, users can attach accumulation functions to a table; these are used automatically by the framework to correctly combine concurrent updates to a table entry.
+Unlike previous data-flow models, Piccolo allows computations running on different machines to share distributed, mutable state via a key-value table interface. 
+Data-flow models do not expose global state, so existing approaches (MapReduce, Dryad) have to write to the distributed storage at the end of each iteration.
+Piccolo is described as a data-centric model, differentiating from other models using message passing primitives. 
+The communication-centric model provided by message passing models is a very low-level abstraction which makes data processing a burden - it mainly focuses on data location and data transfer. The programmer explicitly defines partitioning and internode communications.
+
+Piccolo's goal is to provide performance (as in message passing) and ease of use by allowing inexplicit communication.
+Piccolo exposes a global table interface which is available to all parts of the computation simultaneously, allowing users to specify programs in an intuitive manner similar to that if writing programs for a single machine. 
+Synchronization is achieved by allowing users to defer synchronization logic to the system. 
+Instead of explicitly locking tables in order to perform updates, users can attach accumulation functions to a table; 
+these are used automatically by the framework to correctly combine concurrent updates to a table entry.
+
+
 
 
 \section{RDDs - Spark}
-People soon started to demand more and more from the underlying model in terms of usability, complexity, and execution time. Things like multi-pass applications (machine learning and graph algorithms), interactive ad-hoc queries, and more real-time stream processing. 
+People soon started to demand more and more from the underlying model in terms of usability, complexity, and execution time. 
+Things like multi-pass applications (machine learning and graph algorithms), interactive ad-hoc queries, and more real-time stream processing. 
+The Spark programming model tries to disengage the replication of data from the fault-tolerance property of distributed file systems. 
+Instead of allowing one to arbitrary make updates to shared state, which is hard to maintain consistent, a restricted form of distributed shared memory is proposed. 
+Additionally an efficient fault recovery system using {\tt lineage} is employed. 
+These novel memory abstractions are called Resilient Distributed Datasets (RDDs). 
+They are immutable and can only be built through coarse-grained deterministic operations. 
+Fault tolerance is achieved using lineage; operations used to build the data are stored. 
+This minimizes the overhead since only the operation is logged not the actual data. 
+In the event of failures only the lost partitions are recomputed and there is no cost if nothing fails.
 
-The Spark programming model tries to disengage the replication of data from the fault-tolerance property of distributed file systems. Instead of allowing one to arbitrary make updates to shared state, which is hard to maintain consistent, a restricted form of distributed shared memory is proposed. Additionally an efficient fault recovery system using {\tt lineage} is employed. These novel memory abstractions are called Resilient Distributed Datasets (RDDs). They are immutable and can only be built through coarse-grained deterministic operations. Fault tolerance is achieved using lineage; operations used to build the data are stored. This minimizes the overhead since only the operation is logged not the actual data. In the event of failures only the lost partitions are recomputed and there is no cost if nothing fails.
+It is demonstrated that despite their restrictions, RDDs are quite general and can express suprisingly many parallel algorithms; that is to apply the same operation to many items. 
+To demonstrate their use, they have implemented RDDs in a sytem called Spark; 
+A programming interface that allows the creation, control and operation of such datasets.
 
-It is demonstrated that despite their restrictions, RDDs are quite general and can express suprisingly many parallel algorithms; that is to apply the same operation to many items. To demonstrate their use, they have implemented RDDs in a sytem called Spark; A programming interface that allows the creation, control and operation of such datasets.
+RDDs can be created from stable storage or other RDDs through \textit{transformations}. 
+They need not be materialized at all times. Users can control their persistency or partitioning allowing for optimizations. 
+RDDs are used through \textit{actions}, operations that return a value. 
+Spark computes RDDs lazily the first time they are used in an action by pipelining transformations (thus eliminating the need for creating, using, and removing temporary files).
 
-\subsection{Resilient Distributed Datasets}
-RDDs can be created from stable storage or other RDDs through \textit{transformations}. They need not be materialized at all times. Users can control their persistency or partitioning allowing for optimizations. RDDs are used through \textit{actions}, operations that return a value. Spark computes RDDs lazily the first time they are used in an action by pipelining transformations (thus eliminating the need for creating, using, and removing temporary files).
+RDDs are compared against distributed shared memory (DSM) and is shown that they perform better on applications which perform bulk writes.
+RDDs offer more efficient fault tolerance and can additionally exploit data locality, by means of partitioning and scheduling, to improve performance.
 
+To use Spark, developers write a driver program that connects to a cluster of workers. Spark code on the driver tracks RDDs' lineage.
+
+\section{Pregel}
+Pregel is a framework, developed at Google, to query  distributed, directed graphs.It became known as the MapReduce for graphs; it has the same Map and Reduce steps but it also has several iterations of those steps.
+It aims at operating all connected machines at full capacity at all times and at reducing the overall network traffic. It is good on performing calculations touching all vertices but performs poor when calculations involve only a small fraction of the graph's vertices.
+\subsection{Motivation}
+Classical graph algorithms include Pattern Match (identify similar components - clustering), Traversals (iteratively explore the graph), and Global Measurements (count all vertices). These operations require to touch all vertices and their neighborhoods, keep a history of visited edges, and/or a global view on the graph.
+Because of these requirements, theses classical algorithms are hard to implement on distributed a graph, a graph so large that does not fit in one computer. Thus, Pregel was developed to alleviate this limitations.
+\subsection{Architecture}
+(more on Pregel . . .)
 
 
 
