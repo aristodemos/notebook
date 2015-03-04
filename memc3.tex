@@ -1,0 +1,75 @@
+% TEMPLATE for Usenix papers, specifically to meet requirements of
+%  USENIX '05
+% originally a template for producing IEEE-format articles using LaTeX.
+%   written by Matthew Ward, CS Department, Worcester Polytechnic Institute.
+% adapted by David Beazley for his excellent SWIG paper in Proceedings,
+%   Tcl 96
+% turned into a smartass generic template by De Clarke, with thanks to
+%   both the above pioneers
+% use at your own risk.  Complaints to /dev/null.
+% make it two column with no page numbering, default is 10 point
+
+% Munged by Fred Douglis <douglis@research.att.com> 10/97 to separate
+% the .sty file from the LaTeX source template, so that people can
+% more easily include the .sty file into an existing document.  Also
+% changed to more closely follow the style guidelines as represented
+% by the Word sample file.
+
+% Note that since 2010, USENIX does not require endnotes. If you want
+% foot of page notes, don't include the endnotes package in the
+% usepackage command, below.
+
+% This version uses the latex2e styles, not the very ancient 2.09 stuff.
+\documentclass[letterpaper,twocolumn,10pt]{article}
+\usepackage{usenix,epsfig,endnotes}
+\begin{document}
+
+%don't want date printed
+\date{}
+
+%make title bold and 14 pt font (Latex default is non-bold, 16 pt)
+\title{\Large \bf MemC3: Compact and Concurrent MemCache with Dumber Caching and Smarter Hashing}
+
+%for single author (just remove % characters)
+\author{
+{\rm Aris\ Paphitis}\\
+CUT
+% copy the following lines to add more authors
+% \and
+% {\rm Name}\\
+%Name Institution
+} % end author
+
+\maketitle
+
+% Use the following at camera-ready time to suppress page numbers.
+% Comment it out when you first submit the paper for review.
+\thispagestyle{empty}
+
+
+\subsection*{Key Point}
+The authors present a set of algorithmic and engineering improvements of the popular Memcached system, improving the memory efficiency and throughput.
+
+\section{Background}
+Memcached is a popular in-memory caching layer enabled by the demand of low-latency access to data, required by many Internet services. This requirement many system designers to serve data (all or most) from main memory, using the memory either as primary store or as a cache to deflect particular data structures.
+The most important metrics are performance (measured as throughput: queries pre second) and memory efficiency (measured by the overhead required to store an item).
+Memcached implements a simple and lightweight key-value interface where all key-value tuples are stored in and served from DRAM. Clients communicate with the Memcached servers over the network using a set of commands.
+Standard Memcached uses a typical hash table design, with link-list-based chaining to handle collisions. Chaining is efficient for inserting or deleting single keys, however lookup may require scanning the entire chain.
+Its cache replace algorithm is strict LRU, also based on linked lists. The least recently used entry is evicted and replaced by a newly inserted entry when the cache is full. The design relies on locking to ensure consistency among multiple threads, leading to poor scaling on multi-core CPUs.
+Memory allocation is slab-based. Memory is divided to 1MB pages, and each page is sub-divided into fixed-length chunks. The size of a chunk, and the number of chunks per page, depends on the slab class. Key-value objects are stored in an appropriately-sized chunk. To insert a new key, Memcached looks up the slab class whose chunk size best fits this object. If no vacant chunk is available the search fails and cache eviction is executed.
+Memcached was originally single threaded. It uses libevent for asynchronous network I/O callbacks. Later versions support multi-threading via global locks, preventing Memcached from scaling on multi-core CPUs.
+
+\section{Observations}
+The authors, studying a recent publication by Facebook on several key-value store workloads, made the following observations.
+First, queries for small objects dominate. Most keys are smaller than 32 bytes (Memcached max limit is 250 bytes) and most values no more than a few hundred bytes. The consequence of storing such small keys is high memory overhead. Memcached always allocates a 56-byte header (on 64-bit servers) for each key-value object regardless of size. Thus a more efficient data structure for the index cache should be employed.
+Second, queries are read heavy. The studied workloads are characterized by 30x more reads than writes. Some applications have even more skewed workloads with 500x more writes. Though most queries are GETs, this operation is not optimized and locks are still used extensively. A more optimistic approach can benefit by removing all mutexes from the GET path.
+
+\section{Proposed Enhancements}
+The authors present a compact, concurrent and cache-aware hashing scheme, which they call optimistic concurrent cuckoo hashing.
+{\footnotesize \bibliographystyle{acm}
+}
+
+
+\theendnotes
+
+\end{document}
