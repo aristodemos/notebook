@@ -73,11 +73,23 @@ The basic idea of cuckoo hashing is the use of two hashing functions instead of 
 Additionally, to support keys of variable length, each slot stores a pointer to the key-value and a short hash of the key called a tag. This results in a more cache friendly  lookup by avoiding long chains of pointer dereferences. The 1-Byte tag is compared in each lookup and the full key is retrieved upon a match. Tag collisions are below 1\% and pointer dereferences are almost eliminated.
 Tags are also used to avoid retrieving full keys during insert operations, originally needed to derive the alternate location to displace keys. The hashing scheme used allows insert operations to operate using only information in the table without the need to ever retrieve keys.
 To enable concurrency deadlock risks and false misses have to be taken into consideration.
-Previous studies suggest breaking up inserts into atomic displacement with the effect of adding space overhead much higher than basic cuckoo hashing. MemC3 allows multiple concurrent reads and single writer using optimistic locks.
+Previous studies suggest breaking up inserts into atomic displacement with the effect of adding space overhead much higher than basic cuckoo hashing. MemC3 allows multiple concurrent reads and single writer through optimistic locks using version counters.
 To eliminate false misses MemC3 changes the order of insertion by first searching for a valid cuckoo path and then moving the keys backward along the cuckoo path. As a result, each swap affects only a key at a time, which can be successfully moved to its new location without any kick-out. Inserts are farther improved by employing multiple cuckoo paths. 
 
 \subsection{Concurrent Cache Management}
-Basic memcached maintains a doubly linked list to implement its cache eviction strategy which is strictly LRU. This becomes a major source of space overhead, requiring 18 Bytes for each key. This is scheme is also a synchronization bottleneck since all updates to the cache must be serialized. MemC3 uses a CLOCK-based approach which approximates LRU with improved concurrency and space efficiency.
+Basic memcached maintains a doubly linked list to implement its cache eviction strategy which is strictly LRU. This becomes a major source of space overhead, requiring 18 Bytes for each key. This is scheme is also a synchronization bottleneck since all updates to the cache must be serialized.
+MemC3 uses a CLOCK-based approach which approximates LRU with improved concurrency and space efficiency. For each slab class a circular buffer and a virtual hand is maintained. Each bit in the buffer represents the recency of a different key-value object. Each update sets this bit to 1. Each evict checks the bit currently pointed by the hand. If it is 0, evict selects the corresponding key-value object; else the bit is reset to 0 and the hand is advanced in the circular buffer until a bit of 0 is encountered. 
+In MemC3, the version counters that are  used for optimistic locking are also used to  coordinate evicts with reads to ensure safety.
+
+\section{Evaluation}
+Firstly the cuckoo hashing technique, employed by MemC3, is evaluated against the basic chaining scheme of memcached with respect to space efficiency and construction speed. It is shown that MemC3 consumes 5 Bytes less than basic chaining per key, leading to higher memory efficiency. On the other hand the construction rate is faster in chaining hashing, since only the head is modified, but the cost of long chains (up to 13 objects in a chain vs 4 cuckoo hashing) is also present.
+Next, the insertion latency with respect to the table remaining space is demonstrated to increase gracefully. Following up, it is shown that using 2 cuckoo paths reduces the insertion latency but using more than that has diminishing returns. 
+MemC3 scales up to 6 concurrent threads with 90\% reads and up to 16 threads without any writes, unlike the default hash table which does not scale for either workload since all hash operations are serialized. However, when more write traffic is generated performance  of cuckoo hash tables declines.
+MemC3's cache throughput also scales with increasing number of threads and 100\% cache hits. When the size of memory is limited and cache hits are limited to 85\% poor scaling is observed. 
+Space efficiency is improved due to the elimination of unneeded pointers in MemC3. Consequently cache misses are reduced.
+MemC3 manages to achieve 3x higher throughput and 30\% more space efficiency by applying 
+optimizations for read-mostly workloads of key-value objects small in size.
+
 
 
 {\footnotesize \bibliographystyle{acm}
