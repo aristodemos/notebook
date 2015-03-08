@@ -65,7 +65,21 @@ First, queries for small objects dominate. Most keys are smaller than 32 bytes (
 Second, queries are read heavy. The studied workloads are characterized by 30x more reads than writes. Some applications have even more skewed workloads with 500x more writes. Though most queries are GETs, this operation is not optimized and locks are still used extensively. A more optimistic approach can benefit by removing all mutexes from the GET path.
 
 \section{Proposed Enhancements}
-The authors present a compact, concurrent and cache-aware hashing scheme, which they call optimistic concurrent cuckoo hashing.
+
+The authors present a compact, concurrent and cache-aware hashing scheme, which they call optimistic concurrent cuckoo hashing. MemC3 manages to achieve high memory efficiency and increased throughput than original memcached by adapting to a more specific type of workload. This is accomplished by a adopting a more optimistic hashing scheme, a CLOCK-based eviction algorithm and an optimistic locking strategy.
+
+\subsection{Optimistic Concurrent Cuckoo Caching}
+The basic idea of cuckoo hashing is the use of two hashing functions instead of one, thus providing each key two possible locations where it can reside. MemC3's hash table is 4-way set-associative by providing an array of buckets, each having 4 slots. This design enables higher (almost double) space utilization. 
+Additionally, to support keys of variable length, each slot stores a pointer to the key-value and a short hash of the key called a tag. This results in a more cache friendly  lookup by avoiding long chains of pointer dereferences. The 1-Byte tag is compared in each lookup and the full key is retrieved upon a match. Tag collisions are below 1\% and pointer dereferences are almost eliminated.
+Tags are also used to avoid retrieving full keys during insert operations, originally needed to derive the alternate location to displace keys. The hashing scheme used allows insert operations to operate using only information in the table without the need to ever retrieve keys.
+To enable concurrency deadlock risks and false misses have to be taken into consideration.
+Previous studies suggest breaking up inserts into atomic displacement with the effect of adding space overhead much higher than basic cuckoo hashing. MemC3 allows multiple concurrent reads and single writer using optimistic locks.
+To eliminate false misses MemC3 changes the order of insertion by first searching for a valid cuckoo path and then moving the keys backward along the cuckoo path. As a result, each swap affects only a key at a time, which can be successfully moved to its new location without any kick-out. Inserts are farther improved by employing multiple cuckoo paths. 
+
+\subsection{Concurrent Cache Management}
+Basic memcached maintains a doubly linked list to implement its cache eviction strategy which is strictly LRU. This becomes a major source of space overhead, requiring 18 Bytes for each key. This is scheme is also a synchronization bottleneck since all updates to the cache must be serialized. MemC3 uses a CLOCK-based approach which approximates LRU with improved concurrency and space efficiency.
+
+
 {\footnotesize \bibliographystyle{acm}
 }
 
