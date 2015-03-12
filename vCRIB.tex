@@ -67,7 +67,7 @@ Some hypervisors may offload rule processing to the NIC, but it can only handle 
 
 Rule management is further complicated by heterogeneity in hardware equipment and the highly dynamic environment with policy changes existing in today's data centers.
 
-The central challenge of vCRIPB is to design a collection of algorithms that manages to keep the traffic overhead induced by rule offloading low, while respecting the resource constraints.
+The central challenge of vCRIB is to design a collection of algorithms that manages to keep the traffic overhead induced by rule offloading low, while respecting the resource constraints.
 
 \section{Contributions}
 To address these challenges vCRIB provides an abstraction of a centralized repository of rules for the cloud. Tenants and operators simply install rules in this repository and vCRIB uses network state and traffic information to proactively place rules in hypervisors.
@@ -81,6 +81,18 @@ The process of rule offloading is split in two steps: a novel bin-packing heuris
 Finally, the resource-aware placement of rules is achieved through an heuristic algorithm called {\tt First Fit Decreasing Similarity} and is optimized via a {\tt traffic-aware refinement} to reduce traffic overhead while still maintaining feasibility, in the sense that it respects resource constraints.
 
 \section{Evaluation}
+vCRIB's ability to minimize traffic overhead given resource constraints and rule replacement were studied through simulations on a large fat-tree topology.
+
+Resource usage and traffic trade-off
+	vCRIB uses similarity to find feasible solutions when source placement is infeasible
+	vCRIB finds a placement with low traffic overhead. It can also optimize placement given CPU constraints.
+Resource usage and traffic spatial distribution
+	vCRIB is effective in leveraging on-path and nearby devices.
+	most traffic overhead introduced is within the rack
+Parameter sensitivity analysis
+	similarity is used to accommodate larger partitions
+Reaction to cloud dynamics
+	
 
 
 More fascinating text. Features\footnote{Remember to use endnotes, not footnotes!} galore, plethora of promises.\\
