@@ -71,18 +71,30 @@ Additionally, social networks, Web graphs and protein interaction graphs are par
 \section{Pregel}
 \textit{Pregel} was Google's answer to this task. In Pregel, programs are expressed as a sequence of iterations, in each of which a vertex can receive messages sent in the previous iteration, send messages to other vertices, and modify its own state and that of its outgoing edges or mutate graph topology. It was designed for efficient, scalable and fault tolerant implementation on clusters. Distribution related details are hidden behind an abstract API.
 
+a distributed message-passing system
+
 \section{GraphLab}
 \textit{GraphLab} is a parallel framework for Machine Learning which exploits the sparse structure and common computational patterns of ML algorithms.
 GraphLab improves the abstraction of MapReduce by compactly expressing asynchronous iterative algorithms with sparse computational dependencies while ensuring data consistency and achieving a high degree of parallel performance.
 
 \section{PowerGraph}
 The \textit{PowerGraph} abstraction exploits the internal structure of graph programs to address the challenges of computation on natural graphs in a graph-parallel abstraction. 
-Natural graphs commonly found in the real-world have highly skewed power-law degree distributions.
-PowerGraph exploits the structure of power-law graphs 
+Natural graphs commonly found in the real-world have highly skewed power-law degree distributions, which implies that a small subset of the vertices connects to a large fraction of the graph. 
+PowerGraph exploits the structure of power-law graphs and explicitly factors computation over edges instead of vertices. As a consequence, PowerGraph exposes substantially greater parallelism, reduces network communication and storage costs, and provides a new approach to distributed graph placement.
 
 \section{Giraph}
 \textit{Apache Giraph} is an iterative graph processing framework, built on top of \textit{Apache  Hadoop}.
-Computations in Giraph proceed as a sequence of iterations, called \textit{supersteps} in BSP (see section~\ref{sec:bsp}).
+Computations in Giraph proceed as a sequence of iterations, called \textit{supersteps} in BSP (see section~\ref{sec:bsp}). Initially, every vertex is active. In each supertstep each active vertex invokes the \textit{Compute method} provided by the user. The method implements the graph algorithm that will be executed on the input graph. \\
+The Compute method:
+\begin{itemize}
+\item receives messages sent to the vertex in the previous superstep
+\item computes using the messages, and the vertex and outgoing edge values, which may result in modifications to the values, and
+\item may send messages to other vertices.
+\end{itemize}
+There is a \textit{barrier} between consecutive supersteps. This means that messages sent in any current superstep get delivered to the destination vertices in the next superstep. Also, vertices start computing the next superstep after every vertex has completed computing the current superstep.
+
+\section{GPS}
+\textit{GPS} stands for Graph Processing System and is similar to Google's Pregel with some new features.
 
 \section{Unicorn}
 \textit{Unicorn} is an online, in-memory social graph-aware system designed by Facebook to search trillions of edges between tens of billions of users and entities on thousands of commodity servers. It includes features to promote results with good social proximity.
