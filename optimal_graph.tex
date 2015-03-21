@@ -60,7 +60,7 @@ GraphChi reduces the I/O access when we process large graphs on a single machine
 
 \subsection*{Abstract}
 Many practical computing problems concern large graphs. Standard examples include the Web graph and various social networks. The scale of these graphs - in cases it can be billions of vertices with a trillion edges - poses challenges to their efficient processing.
-Frequently applied algorithms include shortest paths computations, different flavors of clustering, and variations of the page rank theme.\\
+Frequently applied algorithms include shortest paths computations, different flavors of clustering, and variations of the page rank theme. Other graph computing problems of practical value are minimum cut, connected components and more.\\
 While distributed computational resources have become more accessible, developing distributed graph algorithms still remains challenging.
 Graph algorithms usually exhibit poor locality of memory access, very little work per vertex, and a changing degree of parallelism over the course of execution. Distribution of resources exacerbates the locality issue, and increases the probability that a machine 
 will fail during execution.\\
@@ -71,7 +71,39 @@ Additionally, social networks, Web graphs and protein interaction graphs are par
 \section{Pregel - \textit{SIGMOD'10}}
 \textit{Pregel} was Google's answer to this task. In Pregel, programs are expressed as a sequence of iterations, in each of which a vertex can receive messages sent in the previous iteration, send messages to other vertices, and modify its own state and that of its outgoing edges or mutate graph topology. It was designed for efficient, scalable and fault tolerant implementation on clusters. Distribution related details are hidden behind an abstract API.
 
-a distributed message-passing system
+Why MapReduce is insufficient
+Although graph processing algorithms can be written as a series of chained MapReduce invocations, this is not desired. Pregel uses network only for message passing while all vertices and edges required for computation are kept locally at each node. MapReduce requires passing the entire state of the graph from one stage to the next generating a substantial communication and associated serialization overhead. In addition, the need to coordinate the steps of a chained MapReduce adds programming complexity.
+
+\subsection{Characteristics}
+\begin{itemize}
+\item a distributed message-passing system
+\item vertex-centric approach reminiscent of MapReduce
+\item synchronous model
+\item edges are not first-class citizens, having no associated computation
+\item algorithm termination is based on every vertex voting to halt
+\item no data races on concurrent value access
+\item graph state limited to a single value per vertex or edge
+\item no specific file format imposed for I/O
+\item master - workers implementation
+\item Fault tolerance is achieved through checkpointing
+\end{itemize}
+
+\subsection{Architecture}
+The Pregel library divides a graph into partitions, each consisting of a set of vertices and all of those vertices' out-going edges. The default partitioning is performed through a hash function based on the vertex ID. Vertices are assigned to worker machines according to the partitioning.\\
+
+One of the cluster's machines acts as a master and is responsible for coordinating the worker activity. The master is not assigned any portion of the graph.
+The master determines how many partitions the graph will have, and assigns one or more to each worker. 
+Each worker is responsible for maintaining the state of its section of the graph, executing the user defined {\tt Compute()} method on its vertices, and managing messages to and from other workers.
+\textit{A portion of the user's input is assigned to each worker by the master.}
+The master informs each worker to perform a superstep. The worker loops through its active vertices, using one thread for each partition. The worker calls {\tt Compute()} for each active vertex and delivers messages that were sent in the previous superstep.
+When the worker is finished, it responds to the master, telling how many vertices will be active in the next superstep. As long as any vertices are active, or any messages are in transit, the step is repeated.
+When all vertices are inactive the computation halts. Then, the master may instruct each worker to save its portion of the graph.
+
+Fault Tolerance
+
+Fault tolerance is achieved through checkpointing
+
+
 
 \section{GraphLab}
 \textit{GraphLab} is a parallel framework for Machine Learning which exploits the sparse structure and common computational patterns of ML algorithms.
