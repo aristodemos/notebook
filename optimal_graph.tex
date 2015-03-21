@@ -58,39 +58,45 @@ However Spark is not tailored to social graphs, thus it does not process them in
 GraphChi reduces the I/O access when we process large graphs on a single machine by swapping data in memory and disk, but cannot scale to tens of TB and PB as the cluster computing frameworks do.
 (Read GraphX, derived from Hadoop+Pregel, running on Spark.)
 
-\subsection{Abstract}
+\subsection*{Abstract}
 Many practical computing problems concern large graphs. Standard examples include the Web graph and various social networks. The scale of these graphs - in cases it can be billions of vertices with a trillion edges - poses challenges to their efficient processing.
-Frequently applied algorithms include shortest paths computations, different flavors of clustering, and variations of the page rank theme.
-
+Frequently applied algorithms include shortest paths computations, different flavors of clustering, and variations of the page rank theme.\\
 While distributed computational resources have become more accessible, developing distributed graph algorithms still remains challenging.
 Graph algorithms usually exhibit poor locality of memory access, very little work per vertex, and a changing degree of parallelism over the course of execution. Distribution of resources exacerbates the locality issue, and increases the probability that a machine 
-will fail during execution.
-
+will fail during execution.\\
 Additionally, social networks, Web graphs and protein interaction graphs are particularly challenging to handle, because they cannot be readily decomposed into small parts that could be processed in parallel.
 
 
 
 \section{Pregel}
-{\tt Pregel} was Google's answer to this task. In Pregel, programs are expressed as a sequence of iterations, in each of which a vertex can receive messages sent in the previous iteration, send messages to other vertices, and modify its own state and that of its outgoing edges or mutate graph topology. It was designed for efficient, scalable and fault tolerant implementation on clusters. Distribution related details are hidden behind an abstract API.
+\textit{Pregel} was Google's answer to this task. In Pregel, programs are expressed as a sequence of iterations, in each of which a vertex can receive messages sent in the previous iteration, send messages to other vertices, and modify its own state and that of its outgoing edges or mutate graph topology. It was designed for efficient, scalable and fault tolerant implementation on clusters. Distribution related details are hidden behind an abstract API.
 
 \section{GraphLab}
+\textit{GraphLab} is a parallel framework for Machine Learning which exploits the sparse structure and common computational patterns of ML algorithms.
+GraphLab improves the abstraction of MapReduce by compactly expressing asynchronous iterative algorithms with sparse computational dependencies while ensuring data consistency and achieving a high degree of parallel performance.
 
 \section{PowerGraph}
-The {\tt PowerGraph} abstraction exploits the internal structure of graph programs to address the challenges of computation on natural graphs in a graph-parallel abstraction. 
+The \textit{PowerGraph} abstraction exploits the internal structure of graph programs to address the challenges of computation on natural graphs in a graph-parallel abstraction. 
 Natural graphs commonly found in the real-world have highly skewed power-law degree distributions.
 PowerGraph exploits the structure of power-law graphs 
 
 \section{Giraph}
+\textit{Apache Giraph} is an iterative graph processing framework, built on top of \textit{Apache  Hadoop}.
+Computations in Giraph proceed as a sequence of iterations, called \textit{supersteps} in BSP (see section~\ref{sec:bsp}).
+
+\section{Unicorn}
+\textit{Unicorn} is an online, in-memory social graph-aware system designed by Facebook to search trillions of edges between tens of billions of users and entities on thousands of commodity servers. It includes features to promote results with good social proximity.
 
 \section{GraphX}
-{\tt GraphX} is an embedded graph processing framework built on top of Apache Spark. It aims at unifying advances in dataflow systems with advances in graph processing systems, thus eliminating unnecessary data movement and duplication along analytics pipelines. The GraphX API enables the composition of graphs with unstructured and tabular data and permits the same physical data to be viewed both as data and as collections without data movement or duplication.
+\textit{GraphX} is an embedded graph processing framework built on top of Apache Spark. It aims at unifying advances in dataflow systems with advances in graph processing systems, thus eliminating unnecessary data movement and duplication along analytics pipelines. The GraphX API enables the composition of graphs with unstructured and tabular data and permits the same physical data to be viewed both as data and as collections without data movement or duplication.
 Graph computations are reduced to a specific {\tt join-map-group-by} dataflow pattern and additional optimizations are introduced to achieve performance parity with specialized graph processing systems.
 
 \section{GraphChi}
-{\tt GraphChi} is a disk-based system for computing efficiently on graphs using a single consumer-level computer. It introduces a novel method, Parallel Sliding Window (PSW), for processing very large graphs from disk. PSW, unlike most distributed frameworks, implements the asynchronous model of computation, which has been shown to be more efficient than synchronous for many purposes.	
+\textit{GraphChi} is a disk-based system for computing efficiently on graphs using a single consumer-level computer. It introduces a novel method, Parallel Sliding Window (PSW), for processing very large graphs from disk. PSW, unlike most distributed frameworks, implements the asynchronous model of computation, which has been shown to be more efficient than synchronous for many purposes.	
 
 
-\subsection{Bulk Synchronous Parallel model}
+\section{Bulk Synchronous Parallel model}
+\label{sec:bsp}
 Both, Apache Giraphe and Google's Pregel are inspired by Bulk Synchronous Parallel model of distributed computation.
 The Bulk Synchronous Parallel (BSP) abstract computer is bridging model for designing parallel algorithms. It was developed by Leslie Valiant of Harvard University during the 1980s. A BSP computer consists of:
 \begin{enumerate}
@@ -98,7 +104,7 @@ The Bulk Synchronous Parallel (BSP) abstract computer is bridging model for desi
 \item a network that routes messages between pairs of such components, and
 \item a hardware facility that allows for the synchronization of all or a subset of components.
 \end{enumerate}
-A computation proceeds in a series of global supersteps consisting of three components.
+A computation proceeds in a series of global \textit{supersteps} consisting of three components.
 \begin{itemize}
 \item {\tt Concurrent Computation}: every participating processor may perform local computations, i.e., each process can only make use of values stored in the local fast processor memory. The computations occur asynchronously of all the others but may overlap with communication.
 \item {\tt Communication}: The processes exchange data between themselves to facilitate remote data storage capabilities.
