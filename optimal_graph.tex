@@ -110,6 +110,11 @@ Fault tolerance is achieved through checkpointing
 \section{GraphLab}
 \textit{GraphLab} is a parallel framework for Machine Learning which exploits the sparse structure and common computational patterns of ML algorithms.
 GraphLab improves the abstraction of MapReduce by compactly expressing asynchronous iterative algorithms with sparse computational dependencies while ensuring data consistency and achieving a high degree of parallel performance.
+\subsection{Characteristics}
+\begin{itemize}
+\item `` thinking like a vertex''
+\end{itemize}
+\subsection{Architecture}
 
 \section{PowerGraph}
 The \textit{PowerGraph} abstraction exploits the internal structure of graph programs to address the challenges of computation on natural graphs in a graph-parallel abstraction. 
@@ -117,7 +122,7 @@ Natural graphs commonly found in the real-world have highly skewed power-law deg
 PowerGraph exploits the structure of power-law graphs and explicitly factors computation over edges instead of vertices. As a consequence, PowerGraph exposes substantially greater parallelism, reduces network communication and storage costs, and provides a new approach to distributed graph placement.
 
 \section{Giraph}
-\textit{Apache Giraph} is an iterative graph processing framework, built on top of \textit{Apache  Hadoop}.
+\textit{Apache Giraph} is an iterative graph processing framework, developed at Facebook built on top of \textit{Apache  Hadoop}.
 Computations in Giraph proceed as a sequence of iterations, called \textit{supersteps} in BSP (see section~\ref{sec:bsp}). Initially, every vertex is active. In each supertstep each active vertex invokes the \textit{Compute method} provided by the user. The method implements the graph algorithm that will be executed on the input graph. \\
 The Compute method:
 \begin{itemize}
