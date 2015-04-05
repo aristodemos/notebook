@@ -73,10 +73,10 @@ Examples of graph - structured computations (graph parallel) are:
 	\item Semi - Supervised learning (Label propagation, CoEM)
 	\item Collaborative Filtering (tensor factorization)
 	\item Graph analysis (PageRank, Triangle counting)
-\end{itemize}.
+\end{itemize}
 Properties: Dependency graph, local updates, iterative computation
 
-\subsection{Why MapReduce is insufficient}
+\subsection*{Why MapReduce is insufficient}
 Although graph processing algorithms can be written as a series of chained MapReduce invocations, this is not desired. Pregel uses network only for message passing while all vertices and edges required for computation are kept locally at each node. MapReduce requires passing the entire state of the graph from one stage to the next generating a substantial communication and associated serialization overhead. In addition, the need to coordinate the steps of a chained MapReduce adds programming complexity.
 From the ML point of view, MR favorites data parallel tasks like feature-extraction, cross validation, and computing statistics.
 
@@ -201,7 +201,7 @@ There is a \textit{barrier} between consecutive supersteps. This means that mess
 Graph computations are reduced to a specific {\tt join-map-group-by} dataflow pattern and additional optimizations are introduced to achieve performance parity with specialized graph processing systems.
 
 
-\section{Bulk Synchronous Parallel model}
+\section*{The Bulk Synchronous Parallel model}
 \label{sec:bsp}
 Most existing frameworks execute update functions in lock-step, and implement the Bulk-Synchronous Parallel (BSP) model, which defines that update functions can only observe values from the previous iteration. BSP is often preferred in distributed systems as it is simple to implement, and allows maximum level of parallelism during the computation. However, after each iteration, a costly synchronization step is required and system needs to store two versions of all values (value of previous iteration and new value).
 Both, Apache Giraphe and Google's Pregel are inspired by Bulk Synchronous Parallel model of distributed computation.
